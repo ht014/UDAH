@@ -6,7 +6,7 @@ from distance import distance
 import npdistance
 class UDAH:
     def __init__(self, A, X, sim, L, z, K=1,  n_hidden=[128],
-                 max_iter=400,  verbose=True):
+                 max_iter=400, T=0.85, verbose=True):
 
         self.sim = sim
         X = X.astype(np.float32)
@@ -28,6 +28,7 @@ class UDAH:
             n_hidden = [128]
         self.n_hidden = n_hidden
         self.batch_size = 400
+        self.T = T
         train_ones, val_ones, val_zeros, test_ones, test_zeros = train_val_test_split_adjacency(
             A=A, p_val=p_val, p_test=p_test, seed=seed, neg_mul=1, every_node=True, connected=False,
             undirected=(A != A.T).nnz == 0)
@@ -218,7 +219,7 @@ class UDAH:
         ones = tf.ones_like(target_result)
         zeros = tf.zeros_like(target_result)
         logist_tgt_norm = tf.nn.log_softmax(logist_tgt, axis=-1)
-        mask = tf.where(logist_tgt_norm[:,target_result] > T,ones,zeros)
+        mask = tf.where(logist_tgt_norm[:,target_result] > self.T,ones,zeros)
         logist_tgt_ = self.build_disc_tgt(tgt_hash_codes)
         kl_loss = self.build_kl_loss(logist_tgt,logist_tgt_)
 
